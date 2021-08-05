@@ -7,8 +7,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.contentprovider.database.NotesDatabaseHelper.Companion.DESCRIPTION_NOTES
+import com.example.contentprovider.database.NotesDatabaseHelper.Companion.TITLE_NOTES
 
-class NotesAdapter: RecyclerView.Adapter<NotesViewHolder>() {
+class NotesAdapter(val listener: NoteClickedListener): RecyclerView.Adapter<NotesViewHolder>() {
 
     private var mCursor: Cursor? = null
 
@@ -17,12 +19,21 @@ class NotesAdapter: RecyclerView.Adapter<NotesViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: NotesViewHolder, position: Int) {
-        TODO("Not yet implemented")
+        mCursor?.moveToPosition(position)
+
+        holder.titleNote.text = mCursor?.getString(mCursor?.getColumnIndex(TITLE_NOTES) as Int)
+        holder.noteDescription.text = mCursor?.getString(mCursor?.getColumnIndex(DESCRIPTION_NOTES) as Int)
+        holder.noteRemoveButton.setOnClickListener {
+            mCursor?.moveToPosition(position)
+            listener.noteRemoveItem(mCursor)
+            notifyDataSetChanged()
+        }
+
+        // Talvez aconteça um erro aqui futuramente com o itemView
+        holder.itemView.setOnClickListener { listener.noteClickedItem(mCursor as Cursor) }
     }
 
-    override fun getItemCount(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun getItemCount() = if (mCursor != null) mCursor?.count as Int else 0
 
     fun setCursor(newCursor: Cursor?) {
         mCursor = newCursor
